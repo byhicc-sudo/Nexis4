@@ -1,0 +1,33 @@
+* NEXIS-4 M28: NMOS-resistor threshold sensing demonstration
+* MOS LEVEL=1 models, 3.3 V supply. Three different VTO models.
+* NOT a manufacturable PDK, CMOS comparator, or quaternary CPU.
+VDD vdd 0 3.3
+VIN in 0 PWL(0n 0 5n 0 5.01n 1.1 15n 1.1 15.01n 2.2 25n 2.2 25.01n 3.3 40n 3.3)
+R1 vdd out1 10k
+R2 vdd out2 10k
+R3 vdd out3 10k
+M1 out1 in 0 0 NTH1 W=10u L=1u
+M2 out2 in 0 0 NTH2 W=10u L=1u
+M3 out3 in 0 0 NTH3 W=10u L=1u
+.model NTH1 NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.model NTH2 NMOS (LEVEL=1 VTO=1.65 KP=0.001 LAMBDA=0.02)
+.model NTH3 NMOS (LEVEL=1 VTO=2.75 KP=0.001 LAMBDA=0.02)
+.tran 0.05n 40n
+.control
+set noaskquit
+run
+meas tran l0t1 FIND v(out1) AT=4n
+meas tran l0t2 FIND v(out2) AT=4n
+meas tran l0t3 FIND v(out3) AT=4n
+meas tran l1t1 FIND v(out1) AT=10n
+meas tran l1t2 FIND v(out2) AT=10n
+meas tran l1t3 FIND v(out3) AT=10n
+meas tran l2t1 FIND v(out1) AT=20n
+meas tran l2t2 FIND v(out2) AT=20n
+meas tran l2t3 FIND v(out3) AT=20n
+meas tran l3t1 FIND v(out1) AT=30n
+meas tran l3t2 FIND v(out2) AT=30n
+meas tran l3t3 FIND v(out3) AT=30n
+quit
+.endc
+.end
