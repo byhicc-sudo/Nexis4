@@ -1,0 +1,16 @@
+* NEXIS-4 M26: four-level voltage driver and RC load
+* This is NOT a transistor-level quaternary adder
+VDD vdd 0 DC 3.3
+VIN in 0 PWL(0n 0 5n 0 5.01n 1.1 15n 1.1 15.01n 2.2 25n 2.2 25.01n 3.3 35n 3.3 35.01n 0 45n 0)
+RDRV in out 2k
+CLOAD out 0 6f
+.tran 0.01n 45n
+.control
+set filetype=ascii
+run
+wrdata voltage_trace.txt v(in) v(out)
+meas tran maxout MAX v(out)
+meas tran minout MIN v(out)
+quit
+.endc
+.end
