@@ -27,6 +27,11 @@ jobs:
           ngspice -b spice/m27_decoder.cir > spice/m27_decoder.log 2>&1
           cat spice/m27_decoder.log
           python3 tests/check_m27.py spice/m27_decoder.log | tee spice/m27_validation.txt
+      - name: Run M28 MOS threshold sensors
+        run: |
+          ngspice -b spice/m28_mos_sensor.cir > spice/m28_mos_sensor.log 2>&1
+          cat spice/m28_mos_sensor.log
+          python3 tests/check_m28.py spice/m28_mos_sensor.log | tee spice/m28_validation.txt
       - name: Upload traces and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -37,4 +42,6 @@ jobs:
             spice/voltage_trace.txt
             spice/m27_decoder.log
             spice/m27_validation.txt
+            spice/m28_mos_sensor.log
+            spice/m28_validation.txt
           if-no-files-found: warn
