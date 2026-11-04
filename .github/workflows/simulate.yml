@@ -1,0 +1,31 @@
+name: NEXIS-4 SPICE simulation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'spice/**'
+      - '.github/workflows/simulate.yml'
+jobs:
+  spice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ngspice
+        run: sudo apt-get update && sudo apt-get install -y ngspice
+      - name: Verify simulator
+        run: ngspice --version
+      - name: Run electrical test
+        run: |
+          cd spice
+          ngspice -b levels.cir | tee simulation.log
+          test -s voltage_trace.txt
+      - name: Upload traces and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexis4-spice-results
+          path: |
+            spice/simulation.log
+            spice/voltage_trace.txt
+          if-no-files-found: warn
