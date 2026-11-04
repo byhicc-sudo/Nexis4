@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'spice/**'
+      - 'tests/**'
       - '.github/workflows/simulate.yml'
 jobs:
   spice:
@@ -15,11 +16,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ngspice
       - name: Verify simulator
         run: ngspice --version
-      - name: Run electrical test
+      - name: Run M26 electrical test
         run: |
           cd spice
-          ngspice -b levels.cir | tee simulation.log
+          ngspice -b levels.cir > simulation.log 2>&1
+          cat simulation.log
           test -s voltage_trace.txt
+      - name: Run M27 four-level decoder
+        run: |
+          ngspice -b spice/m27_decoder.cir > spice/m27_decoder.log 2>&1
+          cat spice/m27_decoder.log
+          python3 tests/check_m27.py spice/m27_decoder.log | tee spice/m27_validation.txt
       - name: Upload traces and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -28,4 +35,6 @@ jobs:
           path: |
             spice/simulation.log
             spice/voltage_trace.txt
+            spice/m27_decoder.log
+            spice/m27_validation.txt
           if-no-files-found: warn
