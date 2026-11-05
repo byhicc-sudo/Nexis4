@@ -81,7 +81,7 @@ def circuit(op):
  n.add(f"RCO cout_probe {cout} 1m")
  n.add(".control\nset noaskquit\nop\nprint v(out) v(cout_probe)\nquit\n.endc\n.end")
  return "\n".join(n.lines)+"\n",cout
-pat=re.compile(r"v\((out|[a-z0-9]+)\)\s*=\s*([-+\d.eE]+)",re.I)
+pat=re.compile(r"v\((out|[a-z0-9_]+)\)\s*=\s*([-+\d.eE]+)",re.I)
 results=[];fail=[]
 for op in ("XOR","AND","NOT","ADD"):
  template,cout=circuit(op)
