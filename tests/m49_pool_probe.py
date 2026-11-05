@@ -15,7 +15,7 @@ def main():
  out.mkdir(parents=True,exist_ok=True)
  now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
  state={"start_utc":now(),"host":args.host,"port":args.port,"tls":args.tls,
-  "authorized":False,"subscribed":False,"difficulty":None,"jobs":[],"events":[],
+  "authorized":False,"subscribed":False,"difficulty":None,"jobs":[],"events":[],"pending_jobs_received":0,
   "share_submission_enabled":False,"engine":"Python hashlib reference only; MOS/RTL not used"}
  def event(name,**kwargs):
   entry={"utc":now(),"event":name,**kwargs};state["events"].append(entry)
@@ -26,7 +26,25 @@ def main():
   state["end_utc"]=now()
   (out/"report.json").write_text(json.dumps(state,indent=2,ensure_ascii=False)+"\n")
   print("REPORT results/m49_pool/report.json",flush=True)
- framer=Framer();ex1=None;ex2_size=None;deadline=time.monotonic()+args.seconds
+ framer=Framer();ex1=None;ex2_size=None;pending=[];deadline=time.monotonic()+args.seconds
+ def process_job(params,queued=False):
+  try:
+   result=make_job(params,ex1,"00"*ex2_size,ex2_size,0)
+   result["difficulty"]=state["difficulty"]
+   if state["difficulty"] is not None:
+    target=target_from_difficulty(state["difficulty"])
+    result["meets_share_target"]=int(result["digest"],16)<=target
+    result["share_target_hex"]=f"{target:064x}"
+   else:result["meets_share_target"]=None
+   result["queued_before_ready"]=queued
+   state["jobs"].append(result)
+   event("job_validated",job_id=result["job_id"],digest=result["digest"],
+    network_target_met=result["meets_network_target"],share_target_met=result["meets_share_target"],queued=queued)
+  except (KeyError,IndexError,TypeError,ValueError) as e:event("invalid_job",error=str(e))
+ def drain_pending():
+  if state["subscribed"] and state["authorized"] and ex1 is not None:
+   while pending and len(state["jobs"])<args.max_jobs:process_job(pending.pop(0),queued=True)
+
  try:
   with socket.create_connection((args.host,args.port),timeout=8) as raw:
    raw.settimeout(2)
@@ -46,12 +64,13 @@ def main():
        result=msg.get("result")
        if isinstance(result,list) and len(result)>=3 and isinstance(result[1],str) and isinstance(result[2],int) and 0<=result[2]<=32:
         ex1,ex2_size=result[1],result[2];state["subscribed"]=True
-        event("subscribed",extranonce2_size=ex2_size)
+        event("subscribed",extranonce2_size=ex2_size);drain_pending()
        else:event("subscribe_error",error=msg.get("error"))
       elif msg.get("id")==2:
        state["authorized"]=msg.get("result") is True
        event("authorization_result",authorized=state["authorized"],error=msg.get("error"))
        if not state["authorized"]:raise RuntimeError("pool rejected authorization")
+       drain_pending()
       elif method=="mining.set_difficulty":
        try:
         difficulty=msg["params"][0];target=target_from_difficulty(difficulty)
@@ -63,16 +82,16 @@ def main():
         ex1,ex2_size=params[:2];event("extranonce_changed",extranonce2_size=ex2_size)
        else:event("invalid_extranonce")
       elif method=="mining.notify":
+       params=msg.get("params")
+       if not isinstance(params,list):
+        event("invalid_job",error="notify params must be list");continue
        if not state["subscribed"] or not state["authorized"] or ex1 is None:
-        event("job_before_ready");continue
-       try:
-        params=msg["params"]
-        # Reference-only sample nonce; no nonce scanning.
-        result=make_job(params,ex1,"00"*ex2_size,ex2_size,0)
-        result["difficulty"]=state["difficulty"]
-        state["jobs"].append(result)
-        event("job_validated",job_id=result["job_id"],digest=result["digest"],network_target_met=result["meets_network_target"])
-       except (KeyError,IndexError,TypeError,ValueError) as e:event("invalid_job",error=str(e))
+        if len(pending)>=32:
+         pending.pop(0);event("pending_overflow_drop_oldest")
+        if len(params)==9 and params[8] is True:pending.clear()
+        pending.append(params);state["pending_jobs_received"]+=1
+        event("job_queued_before_ready",pending=len(pending))
+       else:process_job(params)
       elif method is not None:event("other_method",method=str(method))
  except (OSError,ssl.SSLError,RuntimeError,ValueError) as e:
   event("error",detail=str(e));save();return 1
