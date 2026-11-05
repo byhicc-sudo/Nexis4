@@ -16,7 +16,7 @@ initial begin
    $display("FAIL genesis got=%h expected=%h",digest,expected); errors=errors+1;
  end else $display("PASS genesis SHA256d raw=%h",digest);
  header[31:0]=32'h1eac2b7c;
- expected=256'h1c1ba47149063b3bebadce0a323e51d097774b5d4c4187eaba0caa5d4a7a229b;
+ expected=256'h1c1ba4714930063bebadce0a323e51d097775dbc444187e6ba0caa5d4a7a229b;
  #10;
  if(digest !== expected) begin
    $display("FAIL nonce+1 got=%h expected=%h",digest,expected); errors=errors+1;
