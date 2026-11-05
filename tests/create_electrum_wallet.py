@@ -17,6 +17,7 @@ def main():
  try:
   from electrum.simple_config import SimpleConfig
   from electrum.wallet import create_new_wallet
+  from electrum.util import create_and_start_event_loop
  except ImportError as e:
   print("ELECTRUM_IMPORT_ERROR:",e,file=sys.stderr);return 3
  password=getpass.getpass("Yeni cüzdan şifresi (en az 16 karakter): ")
@@ -25,6 +26,7 @@ def main():
   print("ERROR: Şifreler eşleşmiyor veya 16 karakterden kısa.",file=sys.stderr);return 4
  confirm=None
  try:
+  create_and_start_event_loop()
   config=SimpleConfig({"electrum_path":str(home/".electrum")})
   result=create_new_wallet(path=str(wallet_path),passphrase=None,password=password,
     encrypt_file=True,seed_type="segwit",config=config)
