@@ -31,7 +31,7 @@ def main():
  send({'id':2,'method':'mining.authorize','params':[a.user,a.password]})
  ex1=None;exsize=0;authorized=False;job=None;nonce=0;ex2_count=0;total=0;best=-1;generation=0
  started=last=time.monotonic()
- print('M59_ACTIVE NEXIS4_QUAT 90LZ_GATE ON; full SHA256d; independent hashlib audit; NO_SUBMIT',flush=True)
+ print('M63_ACTIVE NEXIS4_QUAT 90LZ_GATE; BABM_EARLY',os.getenv('NEXIS4_BABM_EARLY')=='1','best_LZ_scoring',('SAMPLED_1_IN_256' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL'),'NO_SUBMIT',flush=True)
  try:
   while not stop.is_set():
    try:
@@ -86,7 +86,7 @@ def main():
     nonce=0;ex2_count=(ex2_count+1)%(1<<(8*exsize))
    now=time.monotonic()
    if now-last>=a.status_seconds:
-    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'gate90_pass',result[5],'babm_stage61',result[8] if len(result)>8 else 'NA','babm_stage62',result[9] if len(result)>9 else 'NA','babm_stage63',result[10] if len(result)>10 else 'NA',flush=True)
+    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'gate90_pass',result[5],'babm_stage61_total',result[11] if len(result)>11 else 'NA','babm_stage62_total',result[12] if len(result)>12 else 'NA','babm_stage63_total',result[13] if len(result)>13 else 'NA','full_digest_total',result[15] if len(result)>15 else 'NA','score_mode','SAMPLED' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL',flush=True)
     last=now
  except KeyboardInterrupt:print('STOPPED_BY_USER',flush=True)
  finally:
