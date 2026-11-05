@@ -1,0 +1,21 @@
+* M30: binary CMOS reference, alongside 3-threshold MOS quaternary sensor
+* Educational LEVEL=1 devices, not a process-calibrated fair PPA comparison.
+VDD vdd 0 3.3
+VB bin 0 PULSE(0 3.3 2n 0.1n 0.1n 10n 20n)
+MP bout bin vdd vdd PDEV W=20u L=1u
+MN bout bin 0 0 NDEV W=10u L=1u
+CB bout 0 20f
+.model NDEV NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.model PDEV PMOS (LEVEL=1 VTO=-0.55 KP=0.0005 LAMBDA=0.02)
+.tran 0.005n 42n
+.control
+set noaskquit
+run
+meas tran binary_fall_delay TRIG v(bin) VAL=1.65 RISE=1 TARG v(bout) VAL=1.65 FALL=1
+meas tran binary_rise_delay TRIG v(bin) VAL=1.65 FALL=1 TARG v(bout) VAL=1.65 RISE=1
+meas tran binary_high FIND v(bout) AT=1n
+meas tran binary_low FIND v(bout) AT=8n
+meas tran binary_avg_current AVG i(VDD) FROM=2n TO=42n
+quit
+.endc
+.end
