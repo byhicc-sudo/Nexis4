@@ -22,7 +22,8 @@ def main():
   finally:stop.set()
  threading.Thread(target=reader,daemon=True).start()
  def send(m):sock.sendall((json.dumps(m)+'\n').encode())
- send({'id':1,'method':'mining.subscribe','params':['NEXIS4-M59/1.0']})
+ send({'id':1,'method':'mining.subscribe','params':['NEXIS4-DIAG/1.0']})
+ print('AUTH_REQUEST worker',repr(a.user),'password_length',len(a.password),flush=True)
  send({'id':2,'method':'mining.authorize','params':[a.user,a.password]})
  ex1=None;exsize=0;authorized=False;job=None;nonce=0;ex2_count=0;total=0;best=-1;generation=0
  started=last=time.monotonic()
@@ -37,7 +38,7 @@ def main():
       if m.get('error'):raise RuntimeError(str(m['error']))
       ex1=bytes.fromhex(m['result'][1]);exsize=int(m['result'][2]);print('SUBSCRIBED ex2_size',exsize,flush=True)
      elif m.get('id')==2:
-      authorized=m.get('result') is True;print('AUTHORIZED',authorized,m.get('error'),flush=True)
+      authorized=m.get('result') is True;print('AUTH_RESPONSE',repr(m),'AUTHORIZED',authorized,flush=True)
       if not authorized:raise RuntimeError('authorization rejected by pool; rerun or use --host solo.ckpool.org')
      elif m.get('method')=='mining.notify':
       job=m['params'];generation+=1;nonce=0;ex2_count=0
