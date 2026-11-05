@@ -130,7 +130,7 @@ template<class T> static bool gated90(const std::array<uint8_t,80>&header,unsign
 static bool target90(const Digest&d){
  return d[31]==0&&d[30]==0&&d[29]==0&&d[28]==0&&
  d[27]==0&&d[26]==0&&d[25]==0&&d[24]==0&&
- d[23]==0&&d[22]==0&&((d[21]&0xC0)==0);
+ d[23]==0&&d[22]==0&&d[21]==0&&((d[20]&0xC0)==0);
 }
 template<class T> static void run56(const char*name,std::array<uint8_t,80> data,int n){
  unsigned long long rounds=0,pass=0;uint64_t checksum=0;
