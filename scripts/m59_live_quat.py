@@ -86,7 +86,7 @@ def main():
     nonce=0;ex2_count=(ex2_count+1)%(1<<(8*exsize))
    now=time.monotonic()
    if now-last>=a.status_seconds:
-    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'gate90_pass',result[5],flush=True)
+    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'gate90_pass',result[5],'babm_stage61',result[8] if len(result)>8 else 'NA','babm_stage62',result[9] if len(result)>9 else 'NA','babm_stage63',result[10] if len(result)>10 else 'NA',flush=True)
     last=now
  except KeyboardInterrupt:print('STOPPED_BY_USER',flush=True)
  finally:
