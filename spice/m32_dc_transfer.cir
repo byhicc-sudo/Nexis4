@@ -11,7 +11,7 @@ M3 out3 in 0 0 NTH3 W=10u L=1u
 .model NTH1 NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
 .model NTH2 NMOS (LEVEL=1 VTO=1.65 KP=0.001 LAMBDA=0.02)
 .model NTH3 NMOS (LEVEL=1 VTO=2.75 KP=0.001 LAMBDA=0.02)
-.dc VIN 0 3.3 0.01
+.dc VIN 0 3.31 0.01
 .control
 set noaskquit
 run
