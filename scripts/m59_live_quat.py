@@ -6,9 +6,12 @@ def swap_words(h):
  b=bytes.fromhex(h);return b''.join(b[i:i+4][::-1] for i in range(0,len(b),4))
 def lz(d):return 256-int.from_bytes(d,'little').bit_length()
 def main():
- p=argparse.ArgumentParser();p.add_argument('--host',default='stratum.ckpool.org');p.add_argument('--port',type=int,default=3333);p.add_argument('--user',required=True);p.add_argument('--password',default='x');p.add_argument('--status-seconds',type=float,default=10);p.add_argument('--batch',type=int,default=256);p.add_argument('--ex2-step',type=int,default=65536)
+ p=argparse.ArgumentParser();p.add_argument('--host',default='stratum.ckpool.org');p.add_argument('--port',type=int,default=3333);p.add_argument('--user',required=True);p.add_argument('--password',default='x');p.add_argument('--status-seconds',type=float,default=10);p.add_argument('--batch',type=int,default=256);p.add_argument('--ex2-step',type=int,default=65536);p.add_argument('--ex2-start',default='1000000000000000')
  a=p.parse_args()
  if not 1<=a.batch<=8192 or a.ex2_step<1:p.error('invalid batch/ex2-step')
+ try:ex2_start=int(a.ex2_start,16)
+ except ValueError:p.error('ex2-start must be hexadecimal')
+ if ex2_start<0:p.error('ex2-start must be nonnegative')
  proc=subprocess.Popen(['results/m59_live/nexis4_engine'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True,bufsize=1)
  ready=proc.stdout.readline().strip()
  if not (ready.startswith('M59_READY') or ready.startswith('M61_READY')):raise RuntimeError('engine startup failed: '+repr(ready))
@@ -37,7 +40,7 @@ def main():
      if '_error' in m:raise RuntimeError(m['_error'])
      if m.get('id')==1:
       if m.get('error'):raise RuntimeError(str(m['error']))
-      ex1=bytes.fromhex(m['result'][1]);exsize=int(m['result'][2]);print('SUBSCRIBED ex2_size',exsize,flush=True)
+      ex1=bytes.fromhex(m['result'][1]);exsize=int(m['result'][2]);print('SUBSCRIBED ex2_size',exsize,'ex2_start',a.ex2_start,flush=True)
      elif m.get('id')==2:
       authorized=m.get('result') is True;print('AUTH_RESPONSE',repr(m),'AUTHORIZED',authorized,flush=True)
       if not authorized:raise RuntimeError('authorization rejected by pool; rerun or use --host solo.ckpool.org')
@@ -48,7 +51,8 @@ def main():
    except queue.Empty:pass
    if not authorized or ex1 is None or job is None:time.sleep(.1);continue
    jid,prev,c1,c2,branches,ver,nbits,ntime,clean=job[:9]
-   ex2=ex2_count.to_bytes(exsize,'big')
+   if ex2_start >= (1 << (8*exsize)):raise RuntimeError('ex2-start does not fit pool extranonce2 size')
+   ex2=((ex2_start+ex2_count)%(1<<(8*exsize))).to_bytes(exsize,'big')
    merkle=h2(bytes.fromhex(c1)+ex1+ex2+bytes.fromhex(c2))
    for b in branches:merkle=h2(merkle+bytes.fromhex(b))
    prefix=swap_words(ver)+swap_words(prev)+merkle+swap_words(ntime)+swap_words(nbits)
