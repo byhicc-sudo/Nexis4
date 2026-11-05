@@ -42,4 +42,6 @@ def check():
  print("STRATUM-OFFLINE 8/8 PASS: genesis, header, merkle x2, framing, difficulty x3")
 if __name__=="__main__":
  try:check()
- except Exception as e:\n  traceback.print_exc()\n  print("STRATUM-OFFLINE FAIL",repr(e));sys.exit(1)
+ except Exception as e:
+  traceback.print_exc()
+  print("STRATUM-OFFLINE FAIL",repr(e));sys.exit(1)
