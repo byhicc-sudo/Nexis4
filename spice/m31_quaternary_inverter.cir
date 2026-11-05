@@ -1,0 +1,20 @@
+* M31 quaternary inversion (3-q), behavioral transfer plus finite RC load
+* 0->3.3V, 1.1->2.2V, 2.2->1.1V, 3.3->0V
+* NOT a transistor-level implementation. Reference functional test only.
+VIN in 0 PWL(0n 0 5n 0 5.01n 1.1 15n 1.1 15.01n 2.2 25n 2.2 25.01n 3.3 35n 3.3 35.01n 0 45n 0)
+BIDEAL drv 0 V=3.3-V(in)
+ROUT drv out 2k
+CLOAD out 0 20f
+.tran 0.005n 45n
+.control
+set noaskquit
+run
+meas tran q0 FIND v(out) AT=4n
+meas tran q1 FIND v(out) AT=10n
+meas tran q2 FIND v(out) AT=20n
+meas tran q3 FIND v(out) AT=30n
+meas tran qfall_delay TRIG v(in) VAL=0.55 RISE=1 TARG v(out) VAL=2.75 FALL=1
+meas tran qrise_delay TRIG v(in) VAL=0.55 FALL=1 TARG v(out) VAL=2.75 RISE=1
+quit
+.endc
+.end
