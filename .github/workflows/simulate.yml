@@ -39,9 +39,9 @@ jobs:
           ngspice -b spice/m29_timing.cir > spice/m29_timing.log 2>&1
           cat spice/m29_timing.log
           set -o pipefail
-          python3 tests/check_m29.py spice/m29_timing.log | tee
+          python3 tests/check_m29.py spice/m29_timing.log | tee spice/m29_validation.txt
           test -s spice/m29_metrics.json
-          test -s spice/m29_validation.txt spice/m29_validation.txt
+          test -s spice/m29_validation.txt
       - name: Upload traces and logs
         if: always()
         uses: actions/upload-artifact@v4
