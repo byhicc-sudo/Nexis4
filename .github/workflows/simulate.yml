@@ -42,6 +42,13 @@ jobs:
           python3 tests/check_m29.py spice/m29_timing.log | tee spice/m29_validation.txt
           test -s spice/m29_metrics.json
           test -s spice/m29_validation.txt
+      - name: Run M30 binary CMOS reference
+        run: |
+          set -o pipefail
+          ngspice -b spice/m30_binary_reference.cir > spice/m30_binary_reference.log 2>&1
+          cat spice/m30_binary_reference.log
+          python3 tests/check_m30.py spice/m30_binary_reference.log | tee spice/m30_validation.txt
+          test -s spice/m30_binary_metrics.json
       - name: Upload traces and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -57,4 +64,7 @@ jobs:
             spice/m29_timing.log
             spice/m29_validation.txt
             spice/m29_metrics.json
+            spice/m30_binary_reference.log
+            spice/m30_validation.txt
+            spice/m30_binary_metrics.json
           if-no-files-found: warn
