@@ -6,6 +6,7 @@
 #undef main
 #include <sstream>
 #include <cstdlib>
+#include "babm_live_witness.h"
 static int lz60(const Digest&d){int n=0;for(int i=31;i>=0;--i){if(!d[i])n+=8;else {for(int j=7;j>=0;--j){if(d[i]&(1u<<j))return n;++n;}}}return n;}
 static int digit60(char c){if(c>='0'&&c<='9')return c-'0';if(c>='a'&&c<='f')return c-'a'+10;if(c>='A'&&c<='F')return c-'A'+10;return -1;}
 template<class T> static bool round3_audit(const std::array<uint8_t,80>& header){
@@ -119,6 +120,14 @@ int main(){
    if(pass!=target90(d)){std::cout<<"ERROR gate_mismatch nonce="<<nonce<<"\n"<<std::flush;return 1;}
    if(score>best){best=score;best_nonce=nonce;best_digest=d;}
    if(score>45)std::cout<<"HIT "<<score<<" "<<nonce<<" "<<hex(d)<<"\n";
+  }
+  // BABM witness on the winning candidate of each live batch: rebind to the
+  // actual 80-byte Stratum header, rebuild W0..W63 and invert all 64 rounds.
+  // No unproven early rejection; independent Python hashlib audit remains.
+  for(int k=0;k<4;k++)data[76+k]=uint8_t(best_nonce>>(8*k));
+  if(!babm_live_witness(data,best_digest)){
+   std::cout<<"ERROR babm_live_witness nonce="<<best_nonce<<"\n"<<std::flush;
+   return 1;
   }
   checked+=count;
   std::cout<<"BATCH "<<count<<" "<<best<<" "<<best_nonce<<" "<<hex(best_digest)<<" "<<gate_pass<<" "<<total_rounds<<" "<<checked<<"\n"<<std::flush;
