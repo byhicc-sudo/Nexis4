@@ -1,0 +1,91 @@
+* M38 integrated 4-level buffer: MOS sensors, CMOS decode, transmission gates
+* LEVEL=1 idealized threshold devices; reference rails remain ideal.
+VDD vdd 0 3.3
+VREF1 ref1 0 1.1
+VREF2 ref2 0 2.2
+VIN in 0 0
+* NMOS threshold sensing, active-low raw outputs
+R1 vdd raw1 10k
+R2 vdd raw2 10k
+R3 vdd raw3 10k
+MS1 raw1 in 0 0 NTH1 W=10u L=1u
+MS2 raw2 in 0 0 NTH2 W=10u L=1u
+MS3 raw3 in 0 0 NTH3 W=10u L=1u
+* CMOS inversion produces thermometer bits t1,t2,t3
+MT1N t1 raw1 0 0 NLOG W=10u L=1u
+MT1P t1 raw1 vdd vdd PLOG W=20u L=1u
+MT2N t2 raw2 0 0 NLOG W=10u L=1u
+MT2P t2 raw2 vdd vdd PLOG W=20u L=1u
+MT3N t3 raw3 0 0 NLOG W=10u L=1u
+MT3P t3 raw3 vdd vdd PLOG W=20u L=1u
+* s0=~t1, s1=t1&~t2, s2=t2&~t3, s3=t3
+* raw2=~t2 and raw3=~t3 are available directly
+M0N s0 t1 0 0 NLOG W=10u L=1u
+M0P s0 t1 vdd vdd PLOG W=20u L=1u
+* NAND(t1,raw2), then inverter
+M1NA n1 t1 mid1 0 NLOG W=10u L=1u
+M1NB mid1 raw2 0 0 NLOG W=10u L=1u
+M1PA n1 t1 vdd vdd PLOG W=20u L=1u
+M1PB n1 raw2 vdd vdd PLOG W=20u L=1u
+M1IN s1 n1 0 0 NLOG W=10u L=1u
+M1IP s1 n1 vdd vdd PLOG W=20u L=1u
+* NAND(t2,raw3), then inverter
+M2NA n2 t2 mid2 0 NLOG W=10u L=1u
+M2NB mid2 raw3 0 0 NLOG W=10u L=1u
+M2PA n2 t2 vdd vdd PLOG W=20u L=1u
+M2PB n2 raw3 vdd vdd PLOG W=20u L=1u
+M2IN s2 n2 0 0 NLOG W=10u L=1u
+M2IP s2 n2 vdd vdd PLOG W=20u L=1u
+* s3=t3 (thermometer output)
+* Complement controls for four transmission gates
+MC0N c0 s0 0 0 NLOG W=10u L=1u
+MC0P c0 s0 vdd vdd PLOG W=20u L=1u
+MC1N c1 s1 0 0 NLOG W=10u L=1u
+MC1P c1 s1 vdd vdd PLOG W=20u L=1u
+MC2N c2 s2 0 0 NLOG W=10u L=1u
+MC2P c2 s2 vdd vdd PLOG W=20u L=1u
+MC3N c3 t3 0 0 NLOG W=10u L=1u
+MC3P c3 t3 vdd vdd PLOG W=20u L=1u
+* CMOS transmission gates, four reference taps
+MN0 out s0 0 0 NLOG W=10u L=1u
+MP0 out c0 0 vdd PLOG W=20u L=1u
+MN1 out s1 ref1 0 NLOG W=10u L=1u
+MP1 out c1 ref1 vdd PLOG W=20u L=1u
+MN2 out s2 ref2 0 NLOG W=10u L=1u
+MP2 out c2 ref2 vdd PLOG W=20u L=1u
+MN3 out t3 vdd 0 NLOG W=10u L=1u
+MP3 out c3 vdd vdd PLOG W=20u L=1u
+RLEAK out 0 1G
+CLOAD out 0 20f
+.model NTH1 NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.model NTH2 NMOS (LEVEL=1 VTO=1.65 KP=0.001 LAMBDA=0.02)
+.model NTH3 NMOS (LEVEL=1 VTO=2.75 KP=0.001 LAMBDA=0.02)
+.model NLOG NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.model PLOG PMOS (LEVEL=1 VTO=-0.55 KP=0.0005 LAMBDA=0.02)
+.dc VIN 0 3.31 0.01
+.control
+set noaskquit
+run
+meas dc out0 FIND v(out) AT=0
+meas dc out1 FIND v(out) AT=1.1
+meas dc out2 FIND v(out) AT=2.2
+meas dc out3 FIND v(out) AT=3.3
+meas dc s00 FIND v(s0) AT=0
+meas dc s10 FIND v(s1) AT=0
+meas dc s20 FIND v(s2) AT=0
+meas dc s30 FIND v(t3) AT=0
+meas dc s01 FIND v(s0) AT=1.1
+meas dc s11 FIND v(s1) AT=1.1
+meas dc s21 FIND v(s2) AT=1.1
+meas dc s31 FIND v(t3) AT=1.1
+meas dc s02 FIND v(s0) AT=2.2
+meas dc s12 FIND v(s1) AT=2.2
+meas dc s22 FIND v(s2) AT=2.2
+meas dc s32 FIND v(t3) AT=2.2
+meas dc s03 FIND v(s0) AT=3.3
+meas dc s13 FIND v(s1) AT=3.3
+meas dc s23 FIND v(s2) AT=3.3
+meas dc s33 FIND v(t3) AT=3.3
+quit
+.endc
+.end
