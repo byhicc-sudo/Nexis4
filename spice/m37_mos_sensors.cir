@@ -1,0 +1,40 @@
+* M37 three NMOS threshold sensors followed by CMOS inverters
+* Simplified LEVEL=1 devices, artificially selected VTO values.
+VDD vdd 0 3.3
+VIN in 0 0
+R1 vdd raw1 10k
+R2 vdd raw2 10k
+R3 vdd raw3 10k
+MS1 raw1 in 0 0 NTH1 W=10u L=1u
+MS2 raw2 in 0 0 NTH2 W=10u L=1u
+MS3 raw3 in 0 0 NTH3 W=10u L=1u
+MI1N t1 raw1 0 0 NLOG W=10u L=1u
+MI1P t1 raw1 vdd vdd PLOG W=20u L=1u
+MI2N t2 raw2 0 0 NLOG W=10u L=1u
+MI2P t2 raw2 vdd vdd PLOG W=20u L=1u
+MI3N t3 raw3 0 0 NLOG W=10u L=1u
+MI3P t3 raw3 vdd vdd PLOG W=20u L=1u
+.model NTH1 NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.model NTH2 NMOS (LEVEL=1 VTO=1.65 KP=0.001 LAMBDA=0.02)
+.model NTH3 NMOS (LEVEL=1 VTO=2.75 KP=0.001 LAMBDA=0.02)
+.model NLOG NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.model PLOG PMOS (LEVEL=1 VTO=-0.55 KP=0.0005 LAMBDA=0.02)
+.dc VIN 0 3.31 0.01
+.control
+set noaskquit
+run
+meas dc t10 FIND v(t1) AT=0
+meas dc t20 FIND v(t2) AT=0
+meas dc t30 FIND v(t3) AT=0
+meas dc t11 FIND v(t1) AT=1.1
+meas dc t21 FIND v(t2) AT=1.1
+meas dc t31 FIND v(t3) AT=1.1
+meas dc t12 FIND v(t1) AT=2.2
+meas dc t22 FIND v(t2) AT=2.2
+meas dc t32 FIND v(t3) AT=2.2
+meas dc t13 FIND v(t1) AT=3.3
+meas dc t23 FIND v(t2) AT=3.3
+meas dc t33 FIND v(t3) AT=3.3
+quit
+.endc
+.end
