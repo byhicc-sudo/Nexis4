@@ -38,7 +38,7 @@ def main():
       ex1=bytes.fromhex(m['result'][1]);exsize=int(m['result'][2]);print('SUBSCRIBED ex2_size',exsize,flush=True)
      elif m.get('id')==2:
       authorized=m.get('result') is True;print('AUTHORIZED',authorized,m.get('error'),flush=True)
-      if not authorized:raise RuntimeError('authorization failed')
+      if not authorized:raise RuntimeError('authorization rejected by pool; rerun or use --host solo.ckpool.org')
      elif m.get('method')=='mining.notify':
       job=m['params'];generation+=1;nonce=0;ex2_count=0
       print('NEW_JOB',job[0],'generation',generation,'clean',job[8],flush=True)
