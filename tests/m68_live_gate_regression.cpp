@@ -1,6 +1,5 @@
 // M68: exercise the actual live integrated_hash<Quat> and its 50-LZ gate.
 // Compile: g++ -std=c++17 -O2 tests/m68_live_gate_regression.cpp -o /tmp/nexis4_m68 && /tmp/nexis4_m68
-#define main nexis4_live_embedded_main
 #include "m59_live_engine.cpp"
 #undef main
 #include <iostream>
