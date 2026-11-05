@@ -28,7 +28,7 @@ models=[
 vectors=[(0,0),(0xffffffff,1),(0x55555555,0xaaaaaaaa),(0x12345678,0x87654321)]
 def simulate(a,b,index):
  circuit=["* M53 16-stage transistor-coupled quaternary 32-bit adder",
- "VDD vdd 0 3.3","VR1 ref1 0 1.1","VR2 ref2 0 2.2","VC0 c0 0 0"]+models+subckt
+ ".global vdd ref1 ref2","VDD vdd 0 3.3","VR1 ref1 0 1.1","VR2 ref2 0 2.2","VC0 c0 0 0"]+models+subckt
  for i in range(16):
   circuit += [f"VA{i} a{i} 0 {((a>>(2*i))&3)*1.1:.9g}",
    f"VB{i} b{i} 0 {((b>>(2*i))&3)*1.1:.9g}",
