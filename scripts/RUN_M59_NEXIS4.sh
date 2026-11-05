@@ -4,4 +4,15 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 : "${BTC_WORKER:=bc1quzdw7vhxegc68nd4j9vur4n3hcsjcxyrfdznhy.nexis4}"
 mkdir -p results/m59_live
 g++ -std=c++17 -O3 -DNDEBUG tests/m59_live_engine.cpp -o results/m59_live/nexis4_engine
-python3 -u scripts/m59_live_quat.py --user "$BTC_WORKER" "$@" | tee -a results/m59_live/session.log
+# Retry transient authorization errors, switch CKPool endpoint after a failed attempt.
+# Preserve user-specified --host arguments; do not override them.
+for attempt in 1 2 3; do
+  if (( attempt == 1 )); then host=stratum.ckpool.org; else host=solo.ckpool.org; fi
+  echo "M59_CONNECTION_ATTEMPT $attempt host=$host"
+  if python3 -u scripts/m59_live_quat.py --user "$BTC_WORKER" --host "$host" "$@" 2>&1 | tee -a results/m59_live/session.log; then
+    exit 0
+  fi
+  if (( attempt < 3 )); then echo "M59_RETRY_IN_3_SECONDS"; sleep 3; fi
+done
+echo "M59_FAILED_AFTER_3_ATTEMPTS" >&2
+exit 1
