@@ -49,6 +49,13 @@ jobs:
           cat spice/m30_binary_reference.log
           python3 tests/check_m30.py spice/m30_binary_reference.log | tee spice/m30_validation.txt
           test -s spice/m30_binary_metrics.json
+      - name: Run M31 four-level inversion functional timing
+        run: |
+          set -o pipefail
+          ngspice -b spice/m31_quaternary_inverter.cir > spice/m31_quaternary_inverter.log 2>&1
+          cat spice/m31_quaternary_inverter.log
+          python3 tests/check_m31.py spice/m31_quaternary_inverter.log | tee spice/m31_validation.txt
+          test -s spice/m31_metrics.json
       - name: Upload traces and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,4 +74,7 @@ jobs:
             spice/m30_binary_reference.log
             spice/m30_validation.txt
             spice/m30_binary_metrics.json
+            spice/m31_quaternary_inverter.log
+            spice/m31_validation.txt
+            spice/m31_metrics.json
           if-no-files-found: warn
