@@ -78,7 +78,8 @@ def circuit(op):
  n.add(".model NTH3 NMOS (LEVEL=1 VTO=2.75 KP=0.001 LAMBDA=0.02)")
  n.add(".model NLOG NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)")
  n.add(".model PLOG PMOS (LEVEL=1 VTO=-0.55 KP=0.0005 LAMBDA=0.02)")
- n.add(".control\nset noaskquit\nop\nprint v(out) v("+cout+")\nquit\n.endc\n.end")
+ n.add(f"RCO cout_probe {cout} 1m")
+ n.add(".control\nset noaskquit\nop\nprint v(out) v(cout_probe)\nquit\n.endc\n.end")
  return "\n".join(n.lines)+"\n",cout
 pat=re.compile(r"v\((out|[a-z0-9]+)\)\s*=\s*([-+\d.eE]+)",re.I)
 results=[];fail=[]
