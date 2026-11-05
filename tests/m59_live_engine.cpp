@@ -104,6 +104,9 @@ static bool audit_constraints60(const std::array<uint8_t,80>&header){
 int main(){
  const char* audit_env=std::getenv("NEXIS4_AUDIT");
  const bool audit_enabled=audit_env && std::string(audit_env)=="1";
+ const char* hit_env=std::getenv("NEXIS4_HIT_LZ");
+ int hit_lz=hit_env?std::atoi(hit_env):45;
+ if(hit_lz<1||hit_lz>256){std::cerr<<"ERROR invalid NEXIS4_HIT_LZ\n";return 2;}
  const char* early_env=std::getenv("NEXIS4_BABM_EARLY");
  const bool early_enabled=early_env && std::string(early_env)=="1";
  std::cout<<"M61_READY QUAT_SHA256D BABM_STAGED90 SINGLE_PASS AUDIT="<<(audit_enabled?"ON":"OFF")<<" EARLY="<<(early_enabled?"ON":"OFF")<<"\n"<<std::flush;
@@ -116,7 +119,7 @@ int main(){
   std::array<uint8_t,80> data{};bool good=true;
   for(int i=0;i<76;i++){int a=digit60(h[2*i]),b=digit60(h[2*i+1]);if(a<0||b<0){good=false;break;}data[i]=uint8_t((a<<4)|b);}
   if(!good){std::cout<<"ERROR hex\n"<<std::flush;continue;}
-  int best=-1;uint64_t best_nonce=0;Digest best_digest{};unsigned long long total_rounds=0;unsigned gate_pass=0;unsigned long long stage61=0,stage62=0,stage63=0,full_count=0;
+  int best=-1;uint64_t best_nonce=0;Digest best_digest{};unsigned long long total_rounds=0;unsigned gate_pass=0;unsigned target50_pass=0;unsigned long long stage61=0,stage62=0,stage63=0,full_count=0;
   for(uint64_t j=0;j<count;j++){
    uint32_t nonce=uint32_t(start+j);
    for(int k=0;k<4;k++)data[76+k]=uint8_t(nonce>>(8*k));
@@ -132,7 +135,8 @@ int main(){
    ++full_count;int score=lz60(d);
    if(pass!=target90(d)){std::cout<<"ERROR gate_mismatch nonce="<<nonce<<"\n"<<std::flush;return 1;}
    if(score>best){best=score;best_nonce=nonce;best_digest=d;}
-   if(score>45)std::cout<<"HIT "<<score<<" "<<nonce<<" "<<hex(d)<<"\n";
+   if(score>=50)++target50_pass;
+   if(score>=hit_lz)std::cout<<"HIT "<<score<<" "<<nonce<<" "<<hex(d)<<"\n";
   }
   // BABM witness on the winning candidate of each live batch: rebind to the
   // actual 80-byte Stratum header, rebuild W0..W63 and invert all 64 rounds.
@@ -144,6 +148,6 @@ int main(){
   }
   checked+=count;
   cumulative61+=stage61;cumulative62+=stage62;cumulative63+=stage63;cumulative_full+=full_count;
-  std::cout<<"BATCH "<<count<<" "<<best<<" "<<best_nonce<<" "<<hex(best_digest)<<" "<<gate_pass<<" "<<total_rounds<<" "<<checked<<" "<<stage61<<" "<<stage62<<" "<<stage63<<" "<<cumulative61<<" "<<cumulative62<<" "<<cumulative63<<" "<<full_count<<" "<<cumulative_full<<"\n"<<std::flush;
+  std::cout<<"BATCH "<<count<<" "<<best<<" "<<best_nonce<<" "<<hex(best_digest)<<" "<<gate_pass<<" "<<total_rounds<<" "<<checked<<" "<<stage61<<" "<<stage62<<" "<<stage63<<" "<<cumulative61<<" "<<cumulative62<<" "<<cumulative63<<" "<<full_count<<" "<<cumulative_full<<" "<<target50_pass<<"\n"<<std::flush;
  }
 }
