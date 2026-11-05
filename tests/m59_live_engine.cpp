@@ -57,6 +57,45 @@ template<class T> static Digest integrated_hash(const std::array<uint8_t,80>&hea
  Digest out{};for(int i=0;i<8;i++)for(int j=0;j<4;j++)out[4*i+j]=uint8_t(state[i]>>(24-8*j));
  return out;
 }
+
+// Exact integrated constraint audit. These are identities, NOT independent
+// pruning rules: reject no candidates on their basis.
+static bool audit_constraints60(const std::array<uint8_t,80>&header){
+ uint8_t block[64]={0};std::copy(header.begin()+64,header.end(),block);
+ block[16]=0x80;block[62]=0x02;block[63]=0x80;
+ U w[64]{};
+ for(int i=0;i<16;i++)w[i]=(U(block[4*i])<<24)|(U(block[4*i+1])<<16)|(U(block[4*i+2])<<8)|block[4*i+3];
+ // SHA-256 second header block: W4=0x80000000, W5..W14=0, W15=640.
+ if(w[4]!=0x80000000u||w[12]!=0||w[13]!=0||w[14]!=0||w[15]!=640u)return false;
+ for(int i=16;i<64;i++){
+  U x=w[i-15],y=w[i-2];
+  U s0=Quat::xr(Quat::xr(Quat::rr(x,7),Quat::rr(x,18)),Quat::sr(x,3));
+  U s1=Quat::xr(Quat::xr(Quat::rr(y,17),Quat::rr(y,19)),Quat::sr(y,10));
+  U q=plus4<Quat>(w[i-16],s0,w[i-7],s1);
+  U b=plus4<Binary>(w[i-16],s0,w[i-7],s1);
+  if(q!=b)return false;
+  w[i]=q;
+ }
+ // Independently verify late schedule words and digit-level GF(2)/carry.
+ for(int i: {46,61,62}){
+  U x=w[i-15],y=w[i-2];
+  U s0=Binary::xr(Binary::xr(Binary::rr(x,7),Binary::rr(x,18)),Binary::sr(x,3));
+  U s1=Binary::xr(Binary::xr(Binary::rr(y,17),Binary::rr(y,19)),Binary::sr(y,10));
+  if(w[i]!=plus4<Binary>(w[i-16],s0,w[i-7],s1))return false;
+ }
+ for(int i=0;i<16;i++){
+  U a=w[i],b=w[63-i],sum=Quat::add(a,b);
+  if(sum!=U(a+b)||Quat::xr(a,b)!=(a^b))return false;
+  U carry=0;
+  for(int j=0;j<16;j++){
+   U t=((a>>(2*j))&3u)+((b>>(2*j))&3u)+carry;
+   if(((sum>>(2*j))&3u)!=(t&3u))return false;
+   carry=t>>2;
+  }
+ }
+ return true;
+}
+
 int main(){
  std::cout<<"M59_READY M60_INTEGRATED_QUAT_SHA256D ROUND3_AUDIT GATE90 SINGLE_PASS\n"<<std::flush;
  std::string line;uint64_t checked=0;
@@ -71,7 +110,7 @@ int main(){
   for(uint64_t j=0;j<count;j++){
    uint32_t nonce=uint32_t(start+j);
    for(int k=0;k<4;k++)data[76+k]=uint8_t(nonce>>(8*k));
-   if(j==0 && (!round3_audit<Quat>(data)||!round3_audit<Binary>(data))){std::cout<<"ERROR round3_audit\n"<<std::flush;return 1;}
+   if(j==0 && (!round3_audit<Quat>(data)||!round3_audit<Binary>(data)||!audit_constraints60(data))){std::cout<<"ERROR integrated_constraints_audit\n"<<std::flush;return 1;}
    bool pass=false;unsigned rounds=0;Digest d=integrated_hash<Quat>(data,pass,rounds);
    total_rounds+=rounds;gate_pass+=pass;int score=lz60(d);
    if(pass!=target90(d)){std::cout<<"ERROR gate_mismatch nonce="<<nonce<<"\n"<<std::flush;return 1;}
