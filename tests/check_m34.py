@@ -9,8 +9,8 @@ results=root/"results"/"m34"
 results.mkdir(parents=True,exist_ok=True)
 records=[]
 for load in (20,100,500):
-    deck=re.sub(r"(?im)^CLOAD\s+out\s+0\s+20f\s*$",f"CLOAD out 0 {load}f",source)
-    if deck==source:
+    deck, count=re.subn(r"(?im)^CLOAD\s+out\s+0\s+20f\s*$",f"CLOAD out 0 {load}f",source)
+    if count != 1:
         sys.exit("FAIL: CLOAD not found in M33 source")
     path=results/f"load_{load}f.cir"
     log=results/f"load_{load}f.log"
