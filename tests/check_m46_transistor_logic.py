@@ -93,7 +93,7 @@ for op in ("XOR","AND","NOT","ADD"):
     try:
      p=subprocess.run(["ngspice","-b",str(path)],cwd=ROOT,capture_output=True,text=True,timeout=25)
      vals={k.lower():float(v) for k,v in pat.findall(p.stdout+"\n"+p.stderr)}
-     measured=vals.get("out");carry_v=vals.get(cout.lower())
+     measured=vals.get("out");carry_v=vals.get("cout_probe")
      digit,co=logic(a,b,ci,op)
      ok=p.returncode==0 and measured is not None and abs(measured-digit*1.1)<0.18 and carry_v is not None and abs(carry_v-co*3.3)<0.3
      entry={"op":op,"a":a,"b":b,"cin":ci,"expected_v":digit*1.1,"out_v":measured,"expected_carry_v":co*3.3,"carry_v":carry_v,"pass":ok}
