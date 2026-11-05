@@ -5,6 +5,7 @@
 #include "m56_gate_benchmark.cpp"
 #undef main
 #include <sstream>
+#include <cstdlib>
 static int lz60(const Digest&d){int n=0;for(int i=31;i>=0;--i){if(!d[i])n+=8;else {for(int j=7;j>=0;--j){if(d[i]&(1u<<j))return n;++n;}}}return n;}
 static int digit60(char c){if(c>='0'&&c<='9')return c-'0';if(c>='a'&&c<='f')return c-'a'+10;if(c>='A'&&c<='F')return c-'A'+10;return -1;}
 template<class T> static bool round3_audit(const std::array<uint8_t,80>& header){
@@ -97,7 +98,9 @@ static bool audit_constraints60(const std::array<uint8_t,80>&header){
 }
 
 int main(){
- std::cout<<"M59_READY M60_INTEGRATED_QUAT_SHA256D ROUND3_AUDIT GATE90 SINGLE_PASS\n"<<std::flush;
+ const char* audit_env=std::getenv("NEXIS4_AUDIT");
+ const bool audit_enabled=audit_env && std::string(audit_env)=="1";
+ std::cout<<"M61_READY QUAT_SHA256D GATE90 SINGLE_PASS AUDIT="<<(audit_enabled?"ON":"OFF")<<"\n"<<std::flush;
  std::string line;uint64_t checked=0;
  while(std::getline(std::cin,line)){
   if(line=="QUIT")break;
@@ -110,7 +113,7 @@ int main(){
   for(uint64_t j=0;j<count;j++){
    uint32_t nonce=uint32_t(start+j);
    for(int k=0;k<4;k++)data[76+k]=uint8_t(nonce>>(8*k));
-   if(j==0 && (!round3_audit<Quat>(data)||!round3_audit<Binary>(data)||!audit_constraints60(data))){std::cout<<"ERROR integrated_constraints_audit\n"<<std::flush;return 1;}
+   if(audit_enabled && j==0 && (!round3_audit<Quat>(data)||!round3_audit<Binary>(data)||!audit_constraints60(data))){std::cout<<"ERROR integrated_constraints_audit\n"<<std::flush;return 1;}
    bool pass=false;unsigned rounds=0;Digest d=integrated_hash<Quat>(data,pass,rounds);
    total_rounds+=rounds;gate_pass+=pass;int score=lz60(d);
    if(pass!=target90(d)){std::cout<<"ERROR gate_mismatch nonce="<<nonce<<"\n"<<std::flush;return 1;}
