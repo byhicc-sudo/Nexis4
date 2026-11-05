@@ -67,6 +67,13 @@ jobs:
           cat spice/m32_dc_transfer.log
           python3 tests/check_m32.py spice/m32_dc_transfer.log | tee spice/m32_validation.txt
           test -s spice/m32_dc_metrics.json
+      - name: Run M33 four-level MOS output regeneration
+        run: |
+          set -o pipefail
+          ngspice -b spice/m33_regenerator.cir > spice/m33_regenerator.log 2>&1
+          cat spice/m33_regenerator.log
+          python3 tests/check_m33.py spice/m33_regenerator.log | tee spice/m33_validation.txt
+          test -s spice/m33_metrics.json
       - name: Upload traces and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,4 +98,7 @@ jobs:
             spice/m32_dc_transfer.log
             spice/m32_validation.txt
             spice/m32_dc_metrics.json
+            spice/m33_regenerator.log
+            spice/m33_validation.txt
+            spice/m33_metrics.json
           if-no-files-found: warn
