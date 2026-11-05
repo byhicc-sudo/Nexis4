@@ -6,7 +6,7 @@ def swap_words(h):
  b=bytes.fromhex(h);return b''.join(b[i:i+4][::-1] for i in range(0,len(b),4))
 def lz(d):return 256-int.from_bytes(d,'little').bit_length()
 def main():
- p=argparse.ArgumentParser();p.add_argument('--host',default='stratum.ckpool.org');p.add_argument('--port',type=int,default=3333);p.add_argument('--user',required=True);p.add_argument('--password',default='x');p.add_argument('--status-seconds',type=float,default=10);p.add_argument('--batch',type=int,default=256);p.add_argument('--ex2-step',type=int,default=65536);p.add_argument('--ex2-start',default='1000000000000000')
+ p=argparse.ArgumentParser();p.add_argument('--host',default='stratum.ckpool.org');p.add_argument('--port',type=int,default=3333);p.add_argument('--user',required=True);p.add_argument('--password',default='x');p.add_argument('--status-seconds',type=float,default=10);p.add_argument('--batch',type=int,default=256);p.add_argument('--ex2-step',type=int,default=65536);p.add_argument('--ex2-start',default='1111111100000000')
  a=p.parse_args()
  if not 1<=a.batch<=8192 or a.ex2_step<1:p.error('invalid batch/ex2-step')
  try:ex2_start=int(a.ex2_start,16)
