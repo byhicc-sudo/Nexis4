@@ -45,8 +45,15 @@ def main():
       authorized=m.get('result') is True;print('AUTH_RESPONSE',repr(m),'AUTHORIZED',authorized,flush=True)
       if not authorized:raise RuntimeError('authorization rejected by pool; rerun or use --host solo.ckpool.org')
      elif m.get('method')=='mining.notify':
-      job=m['params'];generation+=1;nonce=0;ex2_count=0
-      print('NEW_JOB',job[0],'generation',generation,'clean',job[8],flush=True)
+      incoming=m['params']
+      if len(incoming)<9:raise RuntimeError('invalid mining.notify')
+      clean=incoming[8] is True
+      if job is None or clean:
+       previous=job[0] if job is not None else None
+       job=incoming;generation+=1;nonce=0;ex2_count=0
+       print('NEW_JOB',job[0],'generation',generation,'clean',clean,'previous',previous,flush=True)
+      else:
+       print('JOB_UPDATE_IGNORED',incoming[0],'active_job',job[0],'clean',clean,flush=True)
      elif m.get('method')=='mining.set_difficulty':print('POOL_DIFFICULTY',m['params'][0],flush=True)
    except queue.Empty:pass
    if not authorized or ex1 is None or job is None:time.sleep(.1);continue
