@@ -11,7 +11,7 @@ def main():
  if not 1<=a.batch<=8192 or a.ex2_step<1:p.error('invalid batch/ex2-step')
  proc=subprocess.Popen(['results/m59_live/nexis4_engine'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True,bufsize=1)
  ready=proc.stdout.readline().strip()
-    if not (ready.startswith('M59_READY') or ready.startswith('M61_READY')):raise RuntimeError('engine startup failed: '+repr(ready))
+ if not (ready.startswith('M59_READY') or ready.startswith('M61_READY')):raise RuntimeError('engine startup failed: '+repr(ready))
  sock=socket.create_connection((a.host,a.port),timeout=15);sock.settimeout(None)
  q=queue.Queue();stop=threading.Event()
  def reader():
