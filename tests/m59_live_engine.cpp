@@ -101,6 +101,7 @@ static bool audit_constraints60(const std::array<uint8_t,80>&header){
  return true;
 }
 
+#ifndef NEXIS4_EMBED_LIVE_ENGINE
 int main(){
  const char* audit_env=std::getenv("NEXIS4_AUDIT");
  const bool audit_enabled=audit_env && std::string(audit_env)=="1";
@@ -151,3 +152,5 @@ int main(){
   std::cout<<"BATCH "<<count<<" "<<best<<" "<<best_nonce<<" "<<hex(best_digest)<<" "<<gate_pass<<" "<<total_rounds<<" "<<checked<<" "<<stage61<<" "<<stage62<<" "<<stage63<<" "<<cumulative61<<" "<<cumulative62<<" "<<cumulative63<<" "<<full_count<<" "<<cumulative_full<<" "<<target50_pass<<"\n"<<std::flush;
  }
 }
+
+#endif // NEXIS4_EMBED_LIVE_ENGINE
