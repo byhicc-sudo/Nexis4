@@ -1,0 +1,39 @@
+* M33 four-level voltage regeneration via MOS transmission gates
+* Ideal input decoder drives 4 CMOS transmission gates.
+* NMOS/PMOS are LEVEL=1, four voltage rails are ideal.
+* This is a mixed behavioral/transistor prototype, not a complete physical gate.
+VDD vdd 0 3.3
+VREF1 ref1 0 1.1
+VREF2 ref2 0 2.2
+VIN in 0 PWL(0n 0 5n 0 5.01n 1.1 15n 1.1 15.01n 2.2 25n 2.2 25.01n 3.3 40n 3.3)
+BSEL0 s0 0 V=3.3*(V(in)<0.55)
+BSEL1 s1 0 V=3.3*(V(in)>=0.55 && V(in)<1.65)
+BSEL2 s2 0 V=3.3*(V(in)>=1.65 && V(in)<2.75)
+BSEL3 s3 0 V=3.3*(V(in)>=2.75)
+BCOMP0 c0 0 V=3.3-V(s0)
+BCOMP1 c1 0 V=3.3-V(s1)
+BCOMP2 c2 0 V=3.3-V(s2)
+BCOMP3 c3 0 V=3.3-V(s3)
+MN0 out s0 0 0 NDEV W=10u L=1u
+MP0 out c0 0 vdd PDEV W=20u L=1u
+MN1 out s1 ref1 0 NDEV W=10u L=1u
+MP1 out c1 ref1 vdd PDEV W=20u L=1u
+MN2 out s2 ref2 0 NDEV W=10u L=1u
+MP2 out c2 ref2 vdd PDEV W=20u L=1u
+MN3 out s3 vdd 0 NDEV W=10u L=1u
+MP3 out c3 vdd vdd PDEV W=20u L=1u
+RLEAK out 0 1G
+CLOAD out 0 20f
+.model NDEV NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.model PDEV PMOS (LEVEL=1 VTO=-0.55 KP=0.0005 LAMBDA=0.02)
+.tran 0.01n 40n
+.control
+set noaskquit
+run
+meas tran out0 FIND v(out) AT=4n
+meas tran out1 FIND v(out) AT=10n
+meas tran out2 FIND v(out) AT=20n
+meas tran out3 FIND v(out) AT=30n
+quit
+.endc
+.end
