@@ -2,6 +2,10 @@
 set -Eeuo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 : "${BTC_WORKER:=bc1quzdw7vhxegc68nd4j9vur4n3hcsjcxyrfdznhy.nexis4}"
+if [[ "$BTC_WORKER" == "BITCOIN_ADRESIN.worker1" || "$BTC_WORKER" == BITCOIN_ADRESIN* ]]; then
+  echo "M59_FIX_PLACEHOLDER_WORKER: replacing placeholder BTC_WORKER with verified CKPool worker"
+  BTC_WORKER='bc1quzdw7vhxegc68nd4j9vur4n3hcsjcxyrfdznhy.nexis4'
+fi
 mkdir -p results/m59_live
 g++ -std=c++17 -O3 -DNDEBUG tests/m59_live_engine.cpp -o results/m59_live/nexis4_engine
 # Retry transient authorization errors, switch CKPool endpoint after a failed attempt.
