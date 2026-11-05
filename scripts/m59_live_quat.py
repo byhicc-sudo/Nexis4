@@ -87,7 +87,7 @@ def main():
     nonce=0;ex2_count=(ex2_count+1)%(1<<(8*exsize))
    now=time.monotonic()
    if now-last>=a.status_seconds:
-    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'target50_total',target50_total,'gate90_pass',result[5],'babm_stage61_total',result[11] if len(result)>11 else 'NA','babm_stage62_total',result[12] if len(result)>12 else 'NA','babm_stage63_total',result[13] if len(result)>13 else 'NA','full_digest_total',result[15] if len(result)>15 else 'NA','score_mode','SAMPLED' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL',flush=True)
+    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'target50_total',target50_total,'gate50_pass',result[5],'babm_stage61_total',result[11] if len(result)>11 else 'NA','babm_stage62_total',result[12] if len(result)>12 else 'NA','babm_stage63_total',result[13] if len(result)>13 else 'NA','full_digest_total',result[15] if len(result)>15 else 'NA','score_mode','SAMPLED' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL',flush=True)
     last=now
  except KeyboardInterrupt:print('STOPPED_BY_USER',flush=True)
  finally:
