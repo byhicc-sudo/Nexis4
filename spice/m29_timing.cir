@@ -1,0 +1,21 @@
+* NEXIS-4 M29: MOSFET switching delay and supply-power benchmark
+* Demonstrator: NMOS + resistive pullup, LEVEL=1 device model
+* Not a full four-level logic gate or technology-calibrated processor
+VDD vdd 0 3.3
+VIN gate 0 PULSE(0 3.3 2n 0.1n 0.1n 10n 20n)
+RPULL vdd out 10k
+M1 out gate 0 0 NDEV W=10u L=1u
+CLOAD out 0 20f
+.model NDEV NMOS (LEVEL=1 VTO=0.55 KP=0.001 LAMBDA=0.02)
+.tran 0.005n 42n
+.control
+set noaskquit
+run
+meas tran fall_delay TRIG v(gate) VAL=1.65 RISE=1 TARG v(out) VAL=1.65 FALL=1
+meas tran rise_delay TRIG v(gate) VAL=1.65 FALL=1 TARG v(out) VAL=1.65 RISE=1
+meas tran avg_supply_current AVG i(VDD) FROM=2n TO=42n
+meas tran output_high FIND v(out) AT=1n
+meas tran output_low FIND v(out) AT=8n
+quit
+.endc
+.end
