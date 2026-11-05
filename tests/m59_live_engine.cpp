@@ -27,7 +27,7 @@ template<class T> static bool round3_audit(const std::array<uint8_t,80>& header)
  }
  return true;
 }
-template<class T> static Digest integrated_hash(const std::array<uint8_t,80>&header,bool&gate_pass,unsigned&rounds){
+template<class T> static Digest integrated_hash(const std::array<uint8_t,80>&header,bool&gate_pass,unsigned&rounds,unsigned&stage){
  Digest first=sha<T>(header.data(),header.size());
  uint8_t block[64]={0};std::copy(first.begin(),first.end(),block);
  block[32]=0x80;block[62]=1; // 32-byte second SHA = 256 bits
@@ -41,7 +41,7 @@ template<class T> static Digest integrated_hash(const std::array<uint8_t,80>&hea
   w[i]=plus4<T>(w[i-16],s0,w[i-7],s1);
  }
  U a=state[0],b=state[1],c=state[2],d=state[3],e=state[4],f=state[5],g=state[6],h=state[7];
- gate_pass=true;rounds=0;
+ gate_pass=true;rounds=0;stage=0;
  for(int i=0;i<64;i++){
   U s1=T::xr(T::xr(T::rr(e,6),T::rr(e,11)),T::rr(e,25));
   U ch=T::xr(T::an(e,f),T::an(T::nt(e),g));
@@ -51,8 +51,11 @@ template<class T> static Digest integrated_hash(const std::array<uint8_t,80>&hea
   U t2=T::add(s0,maj);
   h=g;g=f;f=e;e=T::add(d,t1);d=c;c=b;b=a;a=T::add(t1,t2);
   ++rounds;
-  if((i==60 && e!=0xA41F32E7u)||(i==61 && e!=0xE07C2655u)||
-     (i==62 && ((e+IV[5])&0xC0FFFFFFu)!=0))gate_pass=false;
+  // Staged BABM exact conditions, observed in the same full-hash pass.
+  // Do not stop here: best-LZ scoring requires the complete digest.
+  if(gate_pass && i==60 && e!=0xA41F32E7u){gate_pass=false;stage=61;}
+  if(gate_pass && i==61 && e!=0xE07C2655u){gate_pass=false;stage=62;}
+  if(gate_pass && i==62 && ((e+IV[5])&0xC0FFFFFFu)!=0){gate_pass=false;stage=63;}
  }
  U v[8]={a,b,c,d,e,f,g,h};
  for(int i=0;i<8;i++)state[i]=T::add(state[i],v[i]);
@@ -101,7 +104,7 @@ static bool audit_constraints60(const std::array<uint8_t,80>&header){
 int main(){
  const char* audit_env=std::getenv("NEXIS4_AUDIT");
  const bool audit_enabled=audit_env && std::string(audit_env)=="1";
- std::cout<<"M61_READY QUAT_SHA256D GATE90 SINGLE_PASS AUDIT="<<(audit_enabled?"ON":"OFF")<<"\n"<<std::flush;
+ std::cout<<"M61_READY QUAT_SHA256D BABM_STAGED90 SINGLE_PASS AUDIT="<<(audit_enabled?"ON":"OFF")<<"\n"<<std::flush;
  std::string line;uint64_t checked=0;
  while(std::getline(std::cin,line)){
   if(line=="QUIT")break;
@@ -110,12 +113,13 @@ int main(){
   std::array<uint8_t,80> data{};bool good=true;
   for(int i=0;i<76;i++){int a=digit60(h[2*i]),b=digit60(h[2*i+1]);if(a<0||b<0){good=false;break;}data[i]=uint8_t((a<<4)|b);}
   if(!good){std::cout<<"ERROR hex\n"<<std::flush;continue;}
-  int best=-1;uint64_t best_nonce=0;Digest best_digest{};unsigned long long total_rounds=0;unsigned gate_pass=0;
+  int best=-1;uint64_t best_nonce=0;Digest best_digest{};unsigned long long total_rounds=0;unsigned gate_pass=0;unsigned long long stage61=0,stage62=0,stage63=0;
   for(uint64_t j=0;j<count;j++){
    uint32_t nonce=uint32_t(start+j);
    for(int k=0;k<4;k++)data[76+k]=uint8_t(nonce>>(8*k));
    if(audit_enabled && j==0 && (!round3_audit<Quat>(data)||!round3_audit<Binary>(data)||!audit_constraints60(data))){std::cout<<"ERROR integrated_constraints_audit\n"<<std::flush;return 1;}
-   bool pass=false;unsigned rounds=0;Digest d=integrated_hash<Quat>(data,pass,rounds);
+   bool pass=false;unsigned rounds=0,stage=0;Digest d=integrated_hash<Quat>(data,pass,rounds,stage);
+   if(stage==61)++stage61;else if(stage==62)++stage62;else if(stage==63)++stage63;
    total_rounds+=rounds;gate_pass+=pass;int score=lz60(d);
    if(pass!=target90(d)){std::cout<<"ERROR gate_mismatch nonce="<<nonce<<"\n"<<std::flush;return 1;}
    if(score>best){best=score;best_nonce=nonce;best_digest=d;}
@@ -130,6 +134,6 @@ int main(){
    return 1;
   }
   checked+=count;
-  std::cout<<"BATCH "<<count<<" "<<best<<" "<<best_nonce<<" "<<hex(best_digest)<<" "<<gate_pass<<" "<<total_rounds<<" "<<checked<<"\n"<<std::flush;
+  std::cout<<"BATCH "<<count<<" "<<best<<" "<<best_nonce<<" "<<hex(best_digest)<<" "<<gate_pass<<" "<<total_rounds<<" "<<checked<<" "<<stage61<<" "<<stage62<<" "<<stage63<<"\n"<<std::flush;
  }
 }
