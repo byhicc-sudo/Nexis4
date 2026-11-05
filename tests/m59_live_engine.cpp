@@ -54,7 +54,7 @@ template<class T> static Digest integrated_hash(const std::array<uint8_t,80>&hea
   // Staged BABM exact conditions, observed in the same full-hash pass.
   // Do not stop here: best-LZ scoring requires the complete digest.
   if(gate_pass && i==60 && e!=0xA41F32E7u){gate_pass=false;stage=61;if(early){complete=false;return Digest{};}}
-  if(gate_pass && i==61 && ((e+IV[6])&0x00C0FFFFu)!=0){gate_pass=false;stage=62;if(early){complete=false;return Digest{};}}
+  if(gate_pass && i==61 && ((e+IV[6])&0xFFFFC000u)!=0){gate_pass=false;stage=62;if(early){complete=false;return Digest{};}}
   // 50-LZ target is fully decided at round 62; no round-63 condition.
  }
  U v[8]={a,b,c,d,e,f,g,h};
