@@ -54,8 +54,8 @@ template<class T> static Digest integrated_hash(const std::array<uint8_t,80>&hea
   // Staged BABM exact conditions, observed in the same full-hash pass.
   // Do not stop here: best-LZ scoring requires the complete digest.
   if(gate_pass && i==60 && e!=0xA41F32E7u){gate_pass=false;stage=61;if(early){complete=false;return Digest{};}}
-  if(gate_pass && i==61 && e!=0xE07C2655u){gate_pass=false;stage=62;if(early){complete=false;return Digest{};}}
-  if(gate_pass && i==62 && ((e+IV[5])&0xC0FFFFFFu)!=0){gate_pass=false;stage=63;if(early){complete=false;return Digest{};}}
+  if(gate_pass && i==61 && ((e+IV[6])&0x00C0FFFFu)!=0){gate_pass=false;stage=62;if(early){complete=false;return Digest{};}}
+  // 50-LZ target is fully decided at round 62; no round-63 condition.
  }
  U v[8]={a,b,c,d,e,f,g,h};
  for(int i=0;i<8;i++)state[i]=T::add(state[i],v[i]);
@@ -109,7 +109,7 @@ int main(){
  if(hit_lz<1||hit_lz>256){std::cerr<<"ERROR invalid NEXIS4_HIT_LZ\n";return 2;}
  const char* early_env=std::getenv("NEXIS4_BABM_EARLY");
  const bool early_enabled=early_env && std::string(early_env)=="1";
- std::cout<<"M61_READY QUAT_SHA256D BABM_STAGED90 SINGLE_PASS AUDIT="<<(audit_enabled?"ON":"OFF")<<" EARLY="<<(early_enabled?"ON":"OFF")<<"\n"<<std::flush;
+ std::cout<<"M61_READY QUAT_SHA256D BABM_STAGED50 SINGLE_PASS AUDIT="<<(audit_enabled?"ON":"OFF")<<" EARLY="<<(early_enabled?"ON":"OFF")<<"\n"<<std::flush;
  std::string line;uint64_t checked=0;
  uint64_t cumulative61=0,cumulative62=0,cumulative63=0,cumulative_full=0;
  while(std::getline(std::cin,line)){
@@ -125,7 +125,7 @@ int main(){
    for(int k=0;k<4;k++)data[76+k]=uint8_t(nonce>>(8*k));
    if(audit_enabled && j==0 && (!round3_audit<Quat>(data)||!round3_audit<Binary>(data)||!audit_constraints60(data))){std::cout<<"ERROR integrated_constraints_audit\n"<<std::flush;return 1;}
    bool pass=false,complete=false;unsigned rounds=0,stage=0;
-   // Every 256th nonce is fully scored; every target90 survivor is fully scored.
+   // Every 256th nonce is fully scored; every target50 survivor is fully scored.
    // Early rejects have no digest and MUST NOT be reported as a full hash.
    bool early=early_enabled && (j%256!=0);
    Digest d=integrated_hash<Quat>(data,pass,rounds,stage,early,complete);
@@ -133,7 +133,7 @@ int main(){
    total_rounds+=rounds;gate_pass+=pass;
    if(!complete)continue;
    ++full_count;int score=lz60(d);
-   if(pass!=target90(d)){std::cout<<"ERROR gate_mismatch nonce="<<nonce<<"\n"<<std::flush;return 1;}
+   if(pass!=(score>=50)){std::cout<<"ERROR gate_mismatch nonce="<<nonce<<"\n"<<std::flush;return 1;}
    if(score>best){best=score;best_nonce=nonce;best_digest=d;}
    if(score>=50)++target50_pass;
    if(score>=hit_lz)std::cout<<"HIT "<<score<<" "<<nonce<<" "<<hex(d)<<"\n";
