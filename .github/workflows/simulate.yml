@@ -32,6 +32,11 @@ jobs:
           ngspice -b spice/m28_mos_sensor.cir > spice/m28_mos_sensor.log 2>&1
           cat spice/m28_mos_sensor.log
           python3 tests/check_m28.py spice/m28_mos_sensor.log | tee spice/m28_validation.txt
+      - name: Run M29 switching delay and power benchmark
+        run: |
+          ngspice -b spice/m29_timing.cir > spice/m29_timing.log 2>&1
+          cat spice/m29_timing.log
+          python3 tests/check_m29.py spice/m29_timing.log | tee spice/m29_validation.txt
       - name: Upload traces and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -44,4 +49,7 @@ jobs:
             spice/m27_validation.txt
             spice/m28_mos_sensor.log
             spice/m28_validation.txt
+            spice/m29_timing.log
+            spice/m29_validation.txt
+            spice/m29_metrics.json
           if-no-files-found: warn
