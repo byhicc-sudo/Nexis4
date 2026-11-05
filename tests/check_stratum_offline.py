@@ -26,7 +26,7 @@ def framing(parts):
    if line.strip():messages.append(json.loads(line))
  return messages,buffer
 def check():
- genesis=bytes.fromhex("01000000"+"00"*32+"3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"+"29ab5f49"+"ffff001d"+"1dac2b7c")
+ genesis=bytes.fromhex("01000000"+"00"*32+"3ba3edfd7a7b12b27ac72c3e778a6f617fc81bc3888a51323a9fb8aa4b1e5e4a"+"29ab5f49"+"ffff001d"+"1dac2b7c")
  assert len(genesis)==80
  assert sha(genesis)[::-1].hex()=="000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
  built=header("00000001","00"*32,"4a5e1e4baab89f3a32518a88c31bc87f616f8a773e2cc77ab2127b7afdeda33b","495fab29","1d00ffff",0x7c2bac1d)
