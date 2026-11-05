@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""M59: live Stratum + NEXIS4 QUAT C++ 90-LZ gate; hashlib only independent audit."""
+"""Live Stratum + NEXIS4 QUAT, exact 45+ LZ reporting and 50-LZ research target."""
 import argparse,hashlib,json,socket,time,threading,queue,struct,subprocess,os,sys
 def h2(b):return hashlib.sha256(hashlib.sha256(b).digest()).digest()
 def swap_words(h):
@@ -29,9 +29,9 @@ def main():
  send({'id':1,'method':'mining.subscribe','params':['NEXIS4-DIAG/1.0']})
  print('AUTH_REQUEST worker',repr(a.user),'password_length',len(a.password),flush=True)
  send({'id':2,'method':'mining.authorize','params':[a.user,a.password]})
- ex1=None;exsize=0;authorized=False;job=None;nonce=0;ex2_count=0;total=0;best=-1;generation=0
+ ex1=None;exsize=0;authorized=False;job=None;nonce=0;ex2_count=0;total=0;best=-1;generation=0;target50_total=0
  started=last=time.monotonic()
- print('M63_ACTIVE NEXIS4_QUAT 90LZ_GATE; BABM_EARLY',os.getenv('NEXIS4_BABM_EARLY')=='1','best_LZ_scoring',('SAMPLED_1_IN_256' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL'),'NO_SUBMIT',flush=True)
+ print('M64_ACTIVE NEXIS4_QUAT TARGET50; BABM_EARLY',os.getenv('NEXIS4_BABM_EARLY')=='1','best_LZ_scoring',('SAMPLED_1_IN_256' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL'),'NO_SUBMIT',flush=True)
  try:
   while not stop.is_set():
    try:
@@ -79,6 +79,7 @@ def main():
    count=int(result[1]);score=int(result[2]);n=int(result[3]);d=bytes.fromhex(result[4])
    if h2(prefix+struct.pack('<I',n))!=d or lz(d)!=score:raise RuntimeError('BATCH audit mismatch')
    total+=count
+   if len(result)>16:target50_total+=int(result[16])
    if score>best:
     best=score;print('NEW_BEST LZ',best,'job',jid,'ex2',ex2.hex(),'nonce',f'{n:08x}','hash',d[::-1].hex(),flush=True)
    nonce+=count
@@ -86,7 +87,7 @@ def main():
     nonce=0;ex2_count=(ex2_count+1)%(1<<(8*exsize))
    now=time.monotonic()
    if now-last>=a.status_seconds:
-    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'gate90_pass',result[5],'babm_stage61_total',result[11] if len(result)>11 else 'NA','babm_stage62_total',result[12] if len(result)>12 else 'NA','babm_stage63_total',result[13] if len(result)>13 else 'NA','full_digest_total',result[15] if len(result)>15 else 'NA','score_mode','SAMPLED' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL',flush=True)
+    print('STATUS seconds',round(now-started,1),'hashes',total,'avg_Hps',round(total/(now-started)),'best_LZ',best,'ex2',ex2.hex(),'job',jid,'target50_total',target50_total,'gate90_pass',result[5],'babm_stage61_total',result[11] if len(result)>11 else 'NA','babm_stage62_total',result[12] if len(result)>12 else 'NA','babm_stage63_total',result[13] if len(result)>13 else 'NA','full_digest_total',result[15] if len(result)>15 else 'NA','score_mode','SAMPLED' if os.getenv('NEXIS4_BABM_EARLY')=='1' else 'ALL',flush=True)
     last=now
  except KeyboardInterrupt:print('STOPPED_BY_USER',flush=True)
  finally:
