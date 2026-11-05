@@ -52,6 +52,8 @@ def main():
        previous=job[0] if job is not None else None
        job=incoming;generation+=1;nonce=0;ex2_count=0
        print('NEW_JOB',job[0],'generation',generation,'clean',clean,'previous',previous,flush=True)
+       pool_ntime=job[7]
+       print('NTIME_POLICY pool_ntime',pool_ntime,'unix_seconds',int(pool_ntime,16),'max_permitted','UNKNOWN','selected',pool_ntime,'reason','pool_did_not_advertise_upper_bound','NO_SUBMIT',flush=True)
       else:
        print('JOB_UPDATE_IGNORED',incoming[0],'active_job',job[0],'clean',clean,flush=True)
      elif m.get('method')=='mining.set_difficulty':print('POOL_DIFFICULTY',m['params'][0],flush=True)
