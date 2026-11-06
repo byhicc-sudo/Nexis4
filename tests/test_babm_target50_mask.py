@@ -5,7 +5,7 @@ import random
 
 IV6 = 0x1F83D9AB
 IV7 = 0x5BE0CD19
-MASK18 = 0xFFFFC000
+MASK18 = 0x00C0FFFF
 
 def lz_display(d):
     return 256 - int.from_bytes(d, "little").bit_length()
@@ -23,11 +23,11 @@ def test():
         g = (int.from_bytes(d[24:28], "big") - IV6) & 0xFFFFFFFF
         h = (int.from_bytes(d[28:32], "big") - IV7) & 0xFFFFFFFF
         assert gate_from_final_words(g, h) == (lz_display(d) >= 50)
-    for word6 in (0, 1, 0x3FFF):
+    for word6 in (0, 0x10000, 0x20000):
         g = (word6 - IV6) & 0xFFFFFFFF
         h = (-IV7) & 0xFFFFFFFF
         assert gate_from_final_words(g, h)
-    for word6 in (0x4000, 0x8000, 0x10000, 0x40000000, 0x80000000):
+    for word6 in (1, 0x100, 0x4000, 0x400000, 0x80000000):
         assert not gate_from_final_words((word6-IV6)&0xFFFFFFFF, (-IV7)&0xFFFFFFFF)
     assert not gate_from_final_words((-IV6)&0xFFFFFFFF, (1-IV7)&0xFFFFFFFF)
     # Independent real SHA256d digest smoke test; no artificial 50-LZ claim.
