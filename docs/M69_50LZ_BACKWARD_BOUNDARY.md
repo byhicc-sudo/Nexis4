@@ -2,7 +2,7 @@
 
 ## Exact end-state condition
 
-Bitcoin display hash reverses the 32 bytes of the SHA256d digest. Therefore 50 leading zero display bits require SHA256 output word 7 to be zero (32 bits), and the high 18 bits of SHA256 output word 6 to be zero.
+Bitcoin display hash reverses the 32 bytes of the SHA256d digest. Therefore 50 leading zero display bits require SHA256 output word 7 to be zero (32 bits), and the 18 bits selected by the reversed-byte display order in SHA256 output word 6 to be zero.
 
 After the second SHA's 64 rounds (0-based indices 0..63), the SHA-256 shift register satisfies:
 - h64 = e61 (three-register delay)
@@ -12,7 +12,7 @@ After feed-forward, output word7 = (h64 + IV7) mod 2^32 and output word6 = (g64 
 
 Thus the **necessary and sufficient** 50-LZ constraints are:
 - e61 == (-IV7) mod 2^32 = 0xA41F32E7
-- ((e62 + IV6) mod 2^32) & 0xFFFFC000 == 0
+- ((e62 + IV6) mod 2^32) & 0x00C0FFFF == 0
 
 The second condition permits 2^14 values for e62, not one value. No constraints on e63 are needed for 50 LZ.
 
