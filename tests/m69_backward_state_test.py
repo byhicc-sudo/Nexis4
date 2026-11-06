@@ -12,7 +12,7 @@ IV7 = 0x5be0cd19
 def gate50_from_round_states(e61, e62):
     # After 64 rounds: h64 = e61, g64 = e62.
     # SHA output word 7 = h64+IV7; word 6 = g64+IV6.
-    return ((e61 + IV7) & MASK) == 0 and (((e62 + IV6) & MASK) & 0xffffc000) == 0
+    return ((e61 + IV7) & MASK) == 0 and (((e62 + IV6) & MASK) & 0x00c0ffff) == 0
 
 def gate50_from_digest(d):
     return 256 - int.from_bytes(d, "little").bit_length() >= 50
@@ -33,12 +33,12 @@ def main():
         check_state(tuple(rng.getrandbits(32) for _ in range(8)))
     e61=(-IV7)&MASK
     positives=0
-    for w6 in (0,1,0x3fff):
+    for w6 in (0,0x10000,0x20000):
         e62=(w6-IV6)&MASK
         check_state((0,0,0,0,0,0,e62,e61))
         assert gate50_from_round_states(e61,e62)
         positives+=1
-    for w6 in (0x4000,0x8000,0x10000,0x80000000):
+    for w6 in (1,0x100,0x400000,0x80000000):
         e62=(w6-IV6)&MASK
         check_state((0,0,0,0,0,0,e62,e61))
         assert not gate50_from_round_states(e61,e62)
